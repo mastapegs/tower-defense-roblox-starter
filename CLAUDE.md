@@ -22,12 +22,12 @@ src/
   Shared/                        # Headless logic layer (ReplicatedStorage)
     Types.luau                   # Central type definitions (no Roblox types)
     GameConfig.luau              # Game-wide constants
-    TowerConfig.luau             # Tower definitions
-    EnemyConfig.luau             # Enemy definitions
-    WaveConfig.luau              # Wave composition
-    MapData.luau                 # Static map with waypoints
-    GameMath.luau                # Pure headless game logic
-    GameMath.spec.luau           # TestEZ tests for GameMath
+    TowerConfig.luau             # Tower definitions (Archer, Cannon)
+    EnemyConfig.luau             # Enemy definitions (Grunt, Speeder, Tank)
+    WaveConfig.luau              # Wave composition (3 waves, escalating difficulty)
+    MapData.luau                 # Static map with S-curve path (6 waypoints)
+    GameMath.luau                # Pure headless game logic (8 functions)
+    GameMath.spec.luau           # TestEZ tests for GameMath (44+ test cases)
     Adapter.luau                 # Roblox boundary bridge (Position ↔ Vector3)
   .luaurc                        # Luau strict mode + path aliases
 scripts/
@@ -36,6 +36,11 @@ scripts/
 .github/workflows/
   ci.yml                         # Lint, format, analyze, build pipeline
   deploy.yml                     # Roblox deployment (currently disabled)
+.vscode/
+  extensions.json                # Recommended extensions (luau-lsp, stylua, rojo)
+  settings.json                  # Workspace settings (luau-lsp config, aliases)
+testez.d.luau                    # TestEZ type stubs for strict mode
+testez.yml                       # TestEZ standard library definition for selene
 ```
 
 ### Rojo Project Mapping (`default.project.json`)
@@ -95,7 +100,7 @@ All four checks must pass before merging.
   - Quotes: auto prefer double
   - Call parentheses: always required
   - Require sorting: enabled
-- **Linter:** Selene with `roblox` standard library
+- **Linter:** Selene with `testez` standard library (`selene.toml` sets `std = "testez"`, which extends `roblox` via `testez.yml` to include TestEZ globals)
 
 ### Naming
 
@@ -140,7 +145,9 @@ return MyModule
 - `aftman.toml` - Toolchain version pins
 - `wally.toml` - Package dependencies (TestEZ for testing)
 - `stylua.toml` - Formatter configuration
-- `selene.toml` - Linter configuration (`std = "roblox"`)
+- `selene.toml` - Linter configuration (`std = "testez"`, which extends `roblox`)
+- `testez.yml` - Selene standard library definition for TestEZ globals (describe, it, expect, etc.)
+- `testez.d.luau` - Type stubs for TestEZ globals (used by luau-lsp in strict mode)
 - `src/.luaurc` - Luau language settings and path aliases
 
 ## Running CI Checks in Claude Code on the Web
@@ -183,10 +190,58 @@ The Roblox toolchain (aftman, rojo, wally, selene, luau-lsp) is **not pre-instal
 
 The headless logic layer (`Types.luau`, `GameMath.luau`, configs) uses **no Roblox-specific types** (no Vector3, no Instance, no game:GetService in logic functions). Only the Adapter module and the entrypoints/test runner use Roblox APIs. When adding new headless logic, keep this boundary clean — it's what makes the code testable and the architecture meaningful.
 
+## Architecture Patterns
+
+### Headless / Runtime Boundary
+
+The codebase enforces a strict separation between pure game logic and Roblox runtime:
+
+| Layer | Modules | Roblox APIs? | Testable? |
+|-------|---------|-------------|-----------|
+| **Headless** | Types, GameMath, GameConfig, TowerConfig, EnemyConfig, WaveConfig, MapData | No | Yes (TestEZ) |
+| **Boundary** | Adapter (Position ↔ Vector3) | Yes (Vector3 only) | Limited |
+| **Runtime** | Client/init, Server/init, TestRunner | Yes (full) | In-Studio only |
+
+When adding new game logic, place it in the headless layer. Only reach for Roblox APIs in the boundary or runtime layers.
+
+### Foreign Key Pattern
+
+WaveConfig references enemies by string key (e.g., `"Grunt"`, `"Speeder"`) rather than importing EnemyConfig directly. This decouples wave composition from enemy definitions — like database foreign keys. Runtime resolves these keys via lookup at gameplay time.
+
+### Type-Driven Design
+
+All data shapes are defined in `Types.luau` first. Every config and logic module is constrained by these types. The strict mode type checker enforces contracts at build time. Key types:
+
+- `Position` — `{ x: number, y: number, z: number }` (headless, not Vector3)
+- `TowerConfig` — `{ name, damage, range, fireRate, cost }`
+- `EnemyConfig` — `{ name, health, speed, reward }`
+- `WaveEntry` — `{ enemyType (string key), count, spawnInterval }`
+- `WaveConfig` — `{ entries[], preparationTime }`
+- `Waypoint` — `{ position: Position, order: number }`
+- `MapConfig` — `{ name, waypoints[] }`
+
+### Current Game Data
+
+**Towers:** Archer (10 dmg, 25 range, 1.0 rate, 50 cost) and Cannon (40 dmg, 15 range, 0.4 rate, 100 cost)
+**Enemies:** Grunt (50 hp, 10 speed), Speeder (25 hp, 20 speed), Tank (200 hp, 5 speed)
+**Waves:** 3 waves with escalating difficulty — Grunts only → Grunts + Speeders → all three types
+**Map:** "Starter Meadow" with 6 waypoints forming an S-curve (~301.6 studs total)
+**Economy:** 100 starting currency, 20 starting lives, max 25 towers
+
+## Testing
+
+- **Framework:** TestEZ v0.4.1 (installed via Wally as dev dependency)
+- **Test discovery:** `TestRunner.server.luau` auto-discovers all `.spec.luau` modules in `ReplicatedStorage.Shared`
+- **Test execution:** Tests run inside Roblox Studio on Play — check the Output window for results
+- **Current coverage:** `GameMath.spec.luau` has 44+ test cases covering all 8 public functions including edge cases (zero values, boundary conditions, unknown keys)
+- **Naming convention:** Test files use `<ModuleName>.spec.luau` pattern
+- **TestEZ globals:** `describe`, `it`, `expect`, `FIXME`, `FOCUS`, `SKIP` — defined in `testez.yml` (selene) and `testez.d.luau` (type checker)
+
 ## Generated / Ignored Files
 
 These are generated and should not be committed:
 - `sourcemap.json` - Rojo sourcemap
 - `*.rbxl` / `*.rbxlx` - Built place files
-- `Packages/` / `DevPackages/` / `ServerPackages/` - Wally dependencies
+- `Packages/` / `ServerPackages/` - Wally dependencies (installed by `wally install`)
 - `globalTypes.d.lua` - Roblox type definitions (downloaded by analyze.sh)
+- `.claude/` - Claude Code session artifacts
