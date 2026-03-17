@@ -1,0 +1,15 @@
+[package]
+name = "noahp/tower-defense-roblox"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+private = true
+
+[dependencies]
+# Promise = "evaera/promise@4.0.0"
+
+[server-dependencies]
+# Packages that go into ServerStorage (server-only)
+
+[dev-dependencies]
+# Packages only needed during development/testing

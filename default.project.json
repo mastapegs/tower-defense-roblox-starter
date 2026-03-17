@@ -1,0 +1,27 @@
+{
+    "name": "TowerDefense",
+    "emitLegacyScripts": false,
+    "tree": {
+        "$className": "DataModel",
+
+        "ReplicatedStorage": {
+            "$ignoreUnknownInstances": true,
+            "Shared": { "$path": "src/Shared" },
+            "Packages": { "$path": "Packages" }
+        },
+        "ServerScriptService": {
+            "$ignoreUnknownInstances": true,
+            "$path": "src/Server"
+        },
+        "ServerStorage": {
+            "$ignoreUnknownInstances": true
+        },
+        "StarterPlayer": {
+            "$ignoreUnknownInstances": true,
+            "StarterPlayerScripts": {
+                "$ignoreUnknownInstances": true,
+                "$path": "src/Client"
+            }
+        }
+    }
+}

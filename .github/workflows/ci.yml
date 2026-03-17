@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ── Lint with Selene ─────────────────────────────────────────────
+  lint:
+    name: Lint (Selene)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Aftman tools
+        uses: ok-nick/setup-aftman@v0.4.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Selene
+        run: selene src/
+
+  # ── Format check with StyLua ─────────────────────────────────────
+  style:
+    name: Format check (StyLua)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check formatting
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: "v0.20.0"
+          args: --check src/
+
+  # ── Type-check with luau-lsp ─────────────────────────────────────
+  analyze:
+    name: Type check (luau-lsp)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Aftman tools
+        uses: ok-nick/setup-aftman@v0.4.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Wally packages
+        run: sh scripts/install-packages.sh
+
+      - name: Run luau-lsp analyze
+        run: sh scripts/analyze.sh
+
+  # ── Build RBXL artifact ──────────────────────────────────────────
+  build:
+    name: Build place file
+    runs-on: ubuntu-latest
+    needs: [lint, style, analyze]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Aftman tools
+        uses: ok-nick/setup-aftman@v0.4.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Wally packages
+        run: sh scripts/install-packages.sh
+
+      - name: Build .rbxl
+        run: rojo build default.project.json --output TowerDefense.rbxl
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TowerDefense
+          path: TowerDefense.rbxl
+          retention-days: 7
+
+  # Deploy job lives in deploy.yml (disabled until secrets are configured)

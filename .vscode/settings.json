@@ -1,0 +1,25 @@
+{
+    "editor.formatOnSave": true,
+
+    "luau-lsp.platform.type": "roblox",
+
+    "luau-lsp.sourcemap.enabled": true,
+    "luau-lsp.sourcemap.autogenerate": true,
+    "luau-lsp.sourcemap.rojoProjectFile": "default.project.json",
+    "luau-lsp.sourcemap.sourcemapFile": "sourcemap.json",
+    "luau-lsp.sourcemap.includeNonScripts": true,
+
+    "luau-lsp.diagnostics.strictDatamodelTypes": false,
+
+    "luau-lsp.completion.imports.enabled": true,
+    "luau-lsp.completion.imports.suggestServices": true,
+    "luau-lsp.completion.imports.suggestRequires": false,
+
+    "luau-lsp.require.mode": "relativeToFile",
+    "luau-lsp.require.directoryAliases": {
+        "@Packages": "Packages/",
+        "@Shared": "src/Shared/",
+        "@Client": "src/Client/",
+        "@Server": "src/Server/"
+    }
+}

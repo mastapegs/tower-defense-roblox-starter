@@ -1,0 +1,55 @@
+# Deploy to Roblox via Open Cloud API
+#
+# SETUP REQUIRED before enabling:
+#   1. Go to https://create.roblox.com/dashboard/credentials and create an API key
+#      with "Place" publish permissions for your experience.
+#   2. Add the following secrets to your GitHub repo (Settings → Secrets → Actions):
+#        ROBLOX_API_KEY       — the API key from step 1
+#        ROBLOX_UNIVERSE_ID   — found in Creator Hub under your experience URL
+#        ROBLOX_PLACE_ID      — the starting place ID (also in Creator Hub)
+#   3. Change the `if: false` condition below to enable this workflow.
+#
+# This workflow is intentionally disabled (if: false) until secrets are configured.
+
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Roblox
+    runs-on: ubuntu-latest
+    if: false # TODO: remove this line once ROBLOX_API_KEY, ROBLOX_UNIVERSE_ID, and ROBLOX_PLACE_ID secrets are set
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Aftman tools
+        uses: ok-nick/setup-aftman@v0.4.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Wally packages
+        run: sh scripts/install-packages.sh
+
+      - name: Build .rbxl
+        run: rojo build default.project.json --output TowerDefense.rbxl
+
+      - name: Install rbxcloud
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/Sleitnick/rbxcloud/main/scripts/install.sh | sh
+
+      - name: Publish to Roblox
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+          ROBLOX_UNIVERSE_ID: ${{ secrets.ROBLOX_UNIVERSE_ID }}
+          ROBLOX_PLACE_ID: ${{ secrets.ROBLOX_PLACE_ID }}
+        run: |
+          rbxcloud place publish \
+            --api-key "$ROBLOX_API_KEY" \
+            --universe-id "$ROBLOX_UNIVERSE_ID" \
+            --place-id "$ROBLOX_PLACE_ID" \
+            --rbxl TowerDefense.rbxl
