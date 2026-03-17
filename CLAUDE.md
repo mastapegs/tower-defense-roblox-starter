@@ -2,9 +2,15 @@
 
 ## Project Overview
 
-This is a father-and-son tower defense game built from the ground up in Luau with a modern, professional toolchain (Rojo, Wally, StyLua, Selene, luau-lsp). The philosophy is **coding best practices first, game features second** — every iteration should be self-documenting and teach something about both game development and real software engineering.
+Roblox tower defense game starter template using Luau with a modern toolchain (Rojo, Wally, StyLua, Selene, luau-lsp). Currently a minimal boilerplate ready for game system development.
 
-Currently a minimal boilerplate ready for game system development. When helping with this project, keep suggestions approachable and well-explained — this is a learning journey as much as it is a game. Favor clear, well-typed code over clever shortcuts.
+This is a father-and-son learning project — coding best practices first, game features second. Every iteration should be self-documenting and teach something about both game development and real software engineering.
+
+## Tone & Documentation Guidelines
+
+When updating `README.md` or other user-facing documentation, write with an **inviting, friendly tone that is also intellectual and approachable**. The voice should feel like a knowledgeable friend walking you through something — warm but never condescending, clear but never dumbed down. Explain *why* things work the way they do, not just *what* to do. This project is meant to be a learning journey, so documentation should teach as it guides.
+
+When helping with code, keep suggestions approachable and well-explained. Favor clear, well-typed code over clever shortcuts.
 
 ## Repository Structure
 
