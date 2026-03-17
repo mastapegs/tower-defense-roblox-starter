@@ -12,6 +12,7 @@ curl -fsSL -o globalTypes.d.lua \
 
 luau-lsp analyze \
     --definitions=globalTypes.d.lua \
+    --definitions=testez.d.luau \
     --base-luaurc=src/.luaurc \
     --sourcemap=sourcemap.json \
     --settings=.vscode/settings.json \
