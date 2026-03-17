@@ -1,6 +1,10 @@
+--!nocheck
 -- TestEZ test runner — discovers and runs all .spec modules.
 -- This script runs in ServerScriptService on startup.
 -- In a production build, you'd remove or disable this script.
+--
+-- nocheck: Wally-generated types for TestEZ.TestBootstrap:run() don't match
+-- the actual runtime API. This is a dev-only bootstrap script, not game logic.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
