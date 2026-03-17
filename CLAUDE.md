@@ -39,6 +39,8 @@ scripts/
 .vscode/
   extensions.json                # Recommended extensions (luau-lsp, stylua, rojo)
   settings.json                  # Workspace settings (luau-lsp config, aliases)
+docs/
+  roblox-project-structure-comparison.md  # Research: industry structure comparison
 testez.d.luau                    # TestEZ type stubs for strict mode
 testez.yml                       # TestEZ standard library definition for selene
 ```
