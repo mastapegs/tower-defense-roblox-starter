@@ -143,6 +143,46 @@ return MyModule
 - `selene.toml` - Linter configuration (`std = "roblox"`)
 - `src/.luaurc` - Luau language settings and path aliases
 
+## Running CI Checks in Claude Code on the Web
+
+The Roblox toolchain (aftman, rojo, wally, selene, luau-lsp) is **not pre-installed** in the Claude Code web environment. Here's what works and what doesn't:
+
+### What works
+
+- **StyLua** — Install and run via npx:
+  ```sh
+  npx --yes @johnnymorganz/stylua-bin src/          # format
+  npx --yes @johnnymorganz/stylua-bin --check src/   # check only
+  ```
+  Always run this before committing. It handles tab indentation, require sorting, and line wrapping per `stylua.toml`.
+
+- **Selene** — Download the Linux binary directly from GitHub releases:
+  ```sh
+  curl -L https://github.com/Kampfkarren/selene/releases/download/0.27.1/selene-0.27.1-linux.zip -o /tmp/selene.zip
+  unzip -o /tmp/selene.zip -d /usr/local/bin/
+  chmod +x /usr/local/bin/selene
+  ```
+  **Caveat:** `selene src/` requires a `roblox` standard library definition. It calls `selene generate-roblox-std` which fetches the Roblox API dump from GitHub. This **fails if external network access is restricted** (DNS resolution errors). When this happens, selene cannot run — rely on GitHub CI to catch lint issues. Do not let this block commits.
+
+### What does NOT work
+
+- **aftman install** — aftman is not available; tools must be installed individually as shown above
+- **wally install / sh scripts/install-packages.sh** — Wally is not available and requires network access to the Wally registry
+- **sh scripts/analyze.sh** (luau-lsp type checking) — luau-lsp is not available and the script also downloads `globalTypes.d.lua` from GitHub
+- **rojo build** — Rojo is not available
+- **TestEZ tests** — Tests run inside Roblox Studio, not from the command line
+
+### Recommended workflow in this environment
+
+1. **Always run StyLua** via npx before committing — this is the one CI check you can reliably run
+2. **Attempt selene** with the binary download above — if network allows it, great; if not, note it in the commit and let GitHub CI handle it
+3. **Trust the type system** — write code with full type annotations and follow existing patterns. The strict mode type checker will catch issues when CI runs on GitHub
+4. **Follow existing module patterns** — look at how existing files are structured (imports, type annotations, module table pattern) and match them exactly. This minimizes CI surprises
+
+### Headless architecture note
+
+The headless logic layer (`Types.luau`, `GameMath.luau`, configs) uses **no Roblox-specific types** (no Vector3, no Instance, no game:GetService in logic functions). Only the Adapter module and the entrypoints/test runner use Roblox APIs. When adding new headless logic, keep this boundary clean — it's what makes the code testable and the architecture meaningful.
+
 ## Generated / Ignored Files
 
 These are generated and should not be committed:
