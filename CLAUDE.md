@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Roblox tower defense game starter template using Luau with a modern toolchain (Rojo, Wally, StyLua, Selene, luau-lsp). Currently a minimal boilerplate ready for game system development.
+Roblox tower defense game built in Luau with a modern toolchain (Rojo, Wally, StyLua, Selene, luau-lsp, TestEZ). Uses a **headless architecture** — pure game logic (types, math, configs) separated from the Roblox runtime, tested with TestEZ.
 
 This is a father-and-son learning project — coding best practices first, game features second. Every iteration should be self-documenting and teach something about both game development and real software engineering.
 
@@ -16,26 +16,37 @@ When helping with code, keep suggestions approachable and well-explained. Favor 
 
 ```
 src/
-  Client/init.client.luau    # Client entrypoint (StarterPlayerScripts)
-  Server/init.server.luau    # Server entrypoint (ServerScriptService)
-  Shared/                    # Shared modules (ReplicatedStorage)
-  .luaurc                    # Luau strict mode + path aliases
+  Client/init.client.luau        # Client entrypoint (StarterPlayerScripts)
+  Server/init.server.luau        # Server entrypoint (ServerScriptService)
+  Server/TestRunner.server.luau  # TestEZ test runner
+  Shared/                        # Headless logic layer (ReplicatedStorage)
+    Types.luau                   # Central type definitions (no Roblox types)
+    GameConfig.luau              # Game-wide constants
+    TowerConfig.luau             # Tower definitions
+    EnemyConfig.luau             # Enemy definitions
+    WaveConfig.luau              # Wave composition
+    MapData.luau                 # Static map with waypoints
+    GameMath.luau                # Pure headless game logic
+    GameMath.spec.luau           # TestEZ tests for GameMath
+    Adapter.luau                 # Roblox boundary bridge (Position ↔ Vector3)
+  .luaurc                        # Luau strict mode + path aliases
 scripts/
-  analyze.sh                 # Type-checking via luau-lsp
-  install-packages.sh        # Wally package installation
+  analyze.sh                     # Type-checking via luau-lsp
+  install-packages.sh            # Wally package installation
 .github/workflows/
-  ci.yml                     # Lint, format, analyze, build pipeline
-  deploy.yml                 # Roblox deployment (currently disabled)
+  ci.yml                         # Lint, format, analyze, build pipeline
+  deploy.yml                     # Roblox deployment (currently disabled)
 ```
 
 ### Rojo Project Mapping (`default.project.json`)
 
 | Directory    | Roblox Location              |
 |-------------|------------------------------|
-| src/Client  | StarterPlayer.StarterPlayerScripts |
-| src/Server  | ServerScriptService          |
-| src/Shared  | ReplicatedStorage.Shared     |
-| Packages/   | ReplicatedStorage.Packages   |
+| src/Client     | StarterPlayer.StarterPlayerScripts |
+| src/Server     | ServerScriptService          |
+| src/Shared     | ReplicatedStorage.Shared     |
+| Packages/      | ReplicatedStorage.Packages   |
+| DevPackages/   | ServerStorage.DevPackages    |
 
 ## Build & Development Commands
 
@@ -88,8 +99,8 @@ All four checks must pass before merging.
 
 ### Naming
 
-- **PascalCase** for modules and class-like tables (e.g., `Hello`)
-- **camelCase** for functions and variables (e.g., `greet`, `caller`)
+- **PascalCase** for modules and class-like tables (e.g., `GameMath`, `TowerConfig`)
+- **camelCase** for functions and variables (e.g., `damagePerSecond`, `waveTotalHealth`)
 - File names match their module name in PascalCase
 
 ### Module Pattern
@@ -127,7 +138,7 @@ return MyModule
 
 - `default.project.json` - Rojo project tree mapping src to Roblox instances
 - `aftman.toml` - Toolchain version pins
-- `wally.toml` - Package dependencies (currently none)
+- `wally.toml` - Package dependencies (TestEZ for testing)
 - `stylua.toml` - Formatter configuration
 - `selene.toml` - Linter configuration (`std = "roblox"`)
 - `src/.luaurc` - Luau language settings and path aliases
@@ -137,5 +148,5 @@ return MyModule
 These are generated and should not be committed:
 - `sourcemap.json` - Rojo sourcemap
 - `*.rbxl` / `*.rbxlx` - Built place files
-- `Packages/` / `ServerPackages/` - Wally dependencies
+- `Packages/` / `DevPackages/` / `ServerPackages/` - Wally dependencies
 - `globalTypes.d.lua` - Roblox type definitions (downloaded by analyze.sh)
